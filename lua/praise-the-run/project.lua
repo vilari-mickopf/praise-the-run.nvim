@@ -1,3 +1,6 @@
+local configs = require('praise-the-run')
+
+
 local function find_root(patterns)
     local path = vim.fn.expand('%:p:h')
 
@@ -16,7 +19,7 @@ end
 
 
 local function open_project_file()
-    local config = require('fitter-happier')[vim.bo.filetype]
+    local config = configs[vim.bo.filetype]
     if not config then
         print('Not configured for ' .. vim.bo.filetype .. 'project.')
         return
@@ -32,7 +35,7 @@ end
 
 
 local function run(args)
-    local config = require('fitter-happier')[vim.bo.filetype]
+    local config = configs[vim.bo.filetype]
     if not config then
         print('Runner not configured for ' .. vim.bo.filetype)
         return

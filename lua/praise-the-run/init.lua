@@ -1,4 +1,4 @@
-local default_runners = require('fitter-happier.default_runners')
+local default_runners = require('praise-the-run.default_runners')
 
 local M = {}
 
