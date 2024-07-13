@@ -1,4 +1,5 @@
 local default_runners = require('praise-the-run.default_runners')
+local project = require('praise-the-run.project')
 
 local M = {}
 
@@ -49,5 +50,33 @@ function M.setup(user_config)
     M.lua = config.lua
     M.sh = config.sh
 end
+
+
+function M.run(args)
+    project.run(M[vim.bo.filetype], args)
+end
+
+vim.api.nvim_create_user_command('ProjectRun', function()
+    M.run()
+end, {})
+
+
+function M.prompt_and_run()
+    project.prompt_and_run(M[vim.bo.filetype])
+end
+
+vim.api.nvim_create_user_command('ProjectRunWithArgs', function()
+    M.prompt_and_run()
+end, {})
+
+
+function M.open_project_file()
+    project.open_project_file(M[vim.bo.filetype])
+end
+
+vim.api.nvim_create_user_command('OpenProjectFile', function()
+    M.open_project_file()
+end, {})
+
 
 return M

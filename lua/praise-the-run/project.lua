@@ -1,4 +1,4 @@
-local configs = require('praise-the-run')
+local M = {}
 
 
 local function find_root(patterns)
@@ -15,38 +15,6 @@ local function find_root(patterns)
     end
 
     return vim.fn.expand('%:p:h')
-end
-
-
-local function open_project_file()
-    local config = configs[vim.bo.filetype]
-    if not config then
-        print('Plugin not configured for ' .. vim.bo.filetype .. 'project.')
-        return
-    end
-
-    local root = find_root(config.root_identifier)
-    local project_file = root .. '/' .. config.project_file
-    if vim.fn.findfile(project_file) ~= '' then
-        vim.cmd('split ' .. project_file)
-    else
-        local dummy_project_json = '{\n' ..
-                                   '    "pre": [],\n' ..
-                                   '    "run": "",\n' ..
-                                   '    "args": "",\n' ..
-                                   '    "post": []\n' ..
-                                   '}'
-
-        local file = io.open(project_file, 'w')
-        if file then
-            file:write(dummy_project_json)
-            file:close()
-
-            vim.cmd('split ' .. project_file)
-            vim.cmd('%!python -m json.tool')
-            vim.cmd('write')
-        end
-    end
 end
 
 
@@ -83,14 +51,14 @@ local function append(str, items, pre, post)
 end
 
 
-local function run_with_config(run, args, config)
-    local command = append('', config.pre, ' ', ' &&')
+local function run_from_project_file(run, args, procject_config)
+    local command = append('', procject_config.pre, ' ', ' &&')
 
-    local run_command = config.run
+    local run_command = procject_config.run
     if args ~= '' then
         run_command = run_command .. ' ' .. args
-    elseif config.args ~= '' then
-        run_command = run_command .. ' ' .. config.args
+    elseif procject_config.args ~= '' then
+        run_command = run_command .. ' ' .. procject_config.args
     end
 
     if run_command == '' then
@@ -98,38 +66,37 @@ local function run_with_config(run, args, config)
     end
     command = command .. ' ' .. run_command
 
-    return append(command, config.post, ' && ', '')
+    return append(command, procject_config.post, ' && ', '')
 end
 
 
-local function run(args)
+function M.run(lang_config, args)
     if not args then
-        return
+        args = ''
     end
 
-    local config = configs[vim.bo.filetype]
-    if not config then
+    if not lang_config then
         print('Runner not configured for ' .. vim.bo.filetype)
         return
     end
 
-    local patterns = config.root_identifier
-    table.insert(patterns, config.project_file)
+    local patterns = lang_config.root_identifier
+    table.insert(patterns, lang_config.project_file)
 
     local root = find_root(patterns)
-    local command = config.run(root, args)
+    local command = lang_config.run(root, args)
     if not command or command == '' then
         return
     end
 
-    local project_file = root .. '/' .. config.project_file
+    local project_file = root .. '/' .. lang_config.project_file
     if vim.fn.findfile(project_file) ~= '' then
-        local project_file_config = read_project_file(project_file)
-        if not project_file_config then
+        local project_config = read_project_file(project_file)
+        if not project_config then
             return
         end
 
-        command = run_with_config(command, args, project_file_config)
+        command = run_from_project_file(command, args, project_config)
     else
         command = ' ' .. command
     end
@@ -138,21 +105,48 @@ local function run(args)
 end
 
 
-local function get_user_input(prompt)
+function M.prompt_and_run(lang_config)
     vim.fn.inputsave()
-    local user_input = vim.fn.input(prompt)
+    local args = vim.fn.input('Args: ')
     vim.fn.inputrestore()
 
-    if user_input == '' then
-        return nil
+    if not args or args == '' then
+        return
     end
 
-    return user_input
+    M.run(lang_config, args)
 end
 
 
-return {
-    run = run,
-    open_project_file = open_project_file,
-    get_user_input = get_user_input
-}
+function M.open_project_file(lang_config)
+    if not lang_config then
+        print('Plugin not configured for ' .. vim.bo.filetype .. 'project.')
+        return
+    end
+
+    local root = find_root(lang_config.root_identifier)
+    local project_file = root .. '/' .. lang_config.project_file
+    if vim.fn.findfile(project_file) ~= '' then
+        vim.cmd('split ' .. project_file)
+    else
+        local dummy_project_json = '{\n' ..
+                                   '    "pre": [],\n' ..
+                                   '    "run": "",\n' ..
+                                   '    "args": "",\n' ..
+                                   '    "post": []\n' ..
+                                   '}'
+
+        local file = io.open(project_file, 'w')
+        if file then
+            file:write(dummy_project_json)
+            file:close()
+
+            vim.cmd('split ' .. project_file)
+            vim.cmd('%!python -m json.tool')
+            vim.cmd('write')
+        end
+    end
+end
+
+
+return M

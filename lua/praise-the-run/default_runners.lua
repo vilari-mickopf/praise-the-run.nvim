@@ -1,4 +1,6 @@
-local function python(root, args)
+local M = {}
+
+function M.python(root, args)
     local command = 'python ' .. vim.api.nvim_buf_get_name(0)
     if args ~= '' then
         command = command .. ' ' .. args
@@ -7,7 +9,7 @@ local function python(root, args)
 end
 
 
-local function c(root, args)
+function M.c(root, args)
     if vim.fn.findfile(root .. '/' .. 'CMakeLists.txt') ~= '' then
         return ' cd build && cmake .. ' .. args .. ' && make -j'
     else
@@ -30,10 +32,10 @@ local function c(root, args)
 end
 
 
-local cpp = c
+M.cpp = M.c
 
 
-local function rust(root, args)
+function M.rust(root, args)
     if vim.fn.findfile(root .. '/Cargo.toml') == '' then
         print('Cargo.toml file not present.')
         return
@@ -48,7 +50,7 @@ local function rust(root, args)
 end
 
 
-local function lua(root, args)
+function M.lua(root, args)
     local command = 'lua'
     if vim.fn.findfile(root .. '/lua_modules') ~= '' then
         command = './lua'
@@ -63,7 +65,7 @@ local function lua(root, args)
 end
 
 
-local function sh(root, args)
+function M.sh(root, args)
     local command = 'chmod +x ' .. vim.api.nvim_buf_get_name(0) .. ' && '
     command = command .. vim.api.nvim_buf_get_name(0)
     if args ~= '' then
@@ -73,11 +75,4 @@ local function sh(root, args)
 end
 
 
-return {
-    python = python,
-    c = c,
-    cpp = cpp,
-    rust = rust,
-    lua = lua,
-    sh = sh
-}
+return M

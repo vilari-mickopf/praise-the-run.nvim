@@ -143,18 +143,25 @@ require('praise-the-run').setup({
 })
 ```
 
-### Run
+### Running
 
-To run the configured commands:
+To compile/run language of the current file:
 
 ```lua
-require('praise-the-run.project').run('')
+require('praise-the-run').run()
 ```
 
 or with arguments:
 
 ```lua
-require('praise-the-run.project').run('--some --args')
+require('praise-the-run').run('--some --args')
+```
+
+or with vim commands:
+
+```vim
+:ProjectRun
+:ProjectRunWithArgs
 ```
 
 
@@ -182,24 +189,28 @@ Can be particularly useful for python projects where you need to run a specific 
 }
 ```
 
-If `require('praise-the-run.project').run(<args>)` is used, the provided arguments (<args>) will override the arguments specified in the configuration file.
+If `require('praise-the-run').run(<args>)` is used, the provided arguments (<args>) will override the arguments specified in the configuration file.
 
 
 #### Opening the Project File
 To open the project file in a split window, use:
 
 ```lua
-require('praise-the-run.project').open_project_file()
+require('praise-the-run').open_project_file()
 ```
 
-If the file doesn't exist, a dummy project file with all fields empty will be created automatically.
+or use vim command:
+
+```vim
+:OpenProjectFile
+```
+
+If the file doesn't exist, a dummy project file with all fields empty will be created automatically in root directory.
 
 
 #### My keybindings
 ```vim
-nmap <silent> <buffer> <leader>c :wa<Cr>:lua require('praise-the-run.project').run('')<Cr>
-nmap <silent> <buffer> <leader>C :wa<CR>:lua << EOF
-require('praise-the-run.project').run(require('praise-the-run.project').get_user_input('Args: '))
-EOF
-nmap <silent> <buffer> <leader>p :lua require('praise-the-run.project').open_project_file()<Cr>
+nmap <silent> <buffer> <leader>p :OpenProjectFile<Cr>
+nmap <silent> <buffer> <leader>c :wa<Cr>:ProjectRun<Cr>
+nmap <silent> <buffer> <leader>C :wa<Cr>:ProjectRunWithArgs<Cr>
 ```
