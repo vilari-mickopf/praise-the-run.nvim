@@ -87,14 +87,16 @@ local function run_with_config(run, args, config)
     local command = append('', config.pre, ' ', ' &&')
 
     local run_command = config.run
+    if args ~= '' then
+        run_command = run_command .. ' ' .. args
+    elseif config.args ~= '' then
+        run_command = run_command .. ' ' .. config.args
+    end
+
     if run_command == '' then
         run_command = run
     end
     command = command .. ' ' .. run_command
-
-    if args == '' and config.args ~= '' then
-        command = command .. ' ' .. config.args
-    end
 
     return append(command, config.post, ' && ', '')
 end
