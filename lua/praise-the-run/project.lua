@@ -51,22 +51,24 @@ local function append(str, items, pre, post)
 end
 
 
-local function run_from_project_file(run, args, procject_config)
-    local command = append('', procject_config.pre, ' ', ' &&')
+local function run_with_project_config(run, args, project_config)
+    local command = append('', project_config.pre, ' ', ' &&')
 
-    local run_command = procject_config.run
-    if args ~= '' then
-        run_command = run_command .. ' ' .. args
-    elseif procject_config.args ~= '' then
-        run_command = run_command .. ' ' .. procject_config.args
+    if project_config.run ~= '' then
+        command = command .. ' ' .. project_config.run
+        if args ~= '' then
+            command = command .. ' ' .. args
+        elseif project_config.args ~= '' then
+            command = command .. ' ' .. project_config.args
+        end
+    else
+        command = command .. run
+        if args == '' and project_config.args ~= '' then
+            command = command .. ' ' .. project_config.args
+        end
     end
 
-    if run_command == '' then
-        run_command = run
-    end
-    command = command .. ' ' .. run_command
-
-    return append(command, procject_config.post, ' && ', '')
+    return append(command, project_config.post, ' && ', '')
 end
 
 
@@ -96,7 +98,7 @@ function M.run(lang_config, args)
             return
         end
 
-        command = run_from_project_file(command, args, project_config)
+        command = run_with_project_config(command, args, project_config)
     else
         command = ' ' .. command
     end
