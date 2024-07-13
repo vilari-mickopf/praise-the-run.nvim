@@ -7,6 +7,7 @@ Plugin for compiling/running python, c/c++, rust, lua, and sh scripts. It identi
 
 #### python
 ```bash
+cd <root>
 python <current_script> <args>
 ```
 
