@@ -148,7 +148,7 @@ require('praise-the-run').setup({
 To run the configured commands:
 
 ```lua
-require('praise-the-run.project').run()
+require('praise-the-run.project').run('')
 ```
 
 or with arguments:
