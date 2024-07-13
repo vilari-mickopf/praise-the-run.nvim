@@ -1,92 +1,31 @@
-local function read_config(path)
-    local file = io.open(path, 'r')
-    if not file then
-        print('Could not open file: ' .. path)
-        return
+local function python(root, args)
+    local command = 'python ' .. vim.api.nvim_buf_get_name(0)
+    if args ~= '' then
+        command = command .. ' ' .. args
     end
-
-    local content = file:read('*a')
-    file:close()
-
-    return vim.json.decode(content)
+    return command
 end
 
 
-local function run(command)
-    vim.cmd(string.format([[
-        exe 'split' | exe 'terminal %s'
-        call cursor(line('w$'), col('.'))
-    ]], command))
-end
-
-
-local function python(root, projectfile, args)
-    if vim.fn.findfile(root .. '/' .. projectfile) ~= '' then
-        local config = read_config(root .. '/' .. projectfile)
-        if not config then
-            return
-        end
-
-        local command = 'cd ' .. root .. '&&'
-        if config.pre and #config.pre > 0 then
-            for _, pre_cmd in config.pre do
-                command = command .. ' ' .. pre_cmd .. '&&'
-            end
-        end
-
-        local run_command = config.path
-        if not run_command then
-            run_command = vim.api.nvim_buf_get_name(0)
-        end
-        command = command .. run_command
-
-        if args and #args > 0  then
-            for _, arg in ipairs(args) do
-                command = command .. ' ' .. arg
-            end
-        else
-            if config.args and #config.args > 0 then
-                for _, arg in ipairs(config.args) do
-                    command = command .. ' ' .. arg
-                end
-            end
-        end
-
-        if config.post and #config.post > 0 then
-            for _, post_cmd in config.post do
-                command = command .. '&& ' .. post_cmd
-            end
-        end
-
-        run(command)
+local function c(root, args)
+    if vim.fn.findfile(root .. '/' .. 'CMakeLists.txt') ~= '' then
+        return ' cd build && cmake .. ' .. args .. ' && make -j'
     else
-        local command = vim.api.nvim_buf_get_name(0)
-        if args and #args > 1 then
-            for _, arg in ipairs(args) do
-                command = command .. ' ' .. arg
-            end
-        end
-        run('cd ' .. root .. '&& python ' .. command)
-    end
-end
+        if vim.fn.glob(root .. '/*[Mm]akefile') == '' then
+            local script_dir = debug.getinfo(2, 'S').source:sub(2):match('(.*/)')
+            local input = vim.loop.fs_open(script_dir .. '/MakefileTemplate', 'r', 438)
+            assert(input, 'Could not open source file')
+            local output = vim.loop.fs_open(root .. '/Makefile', 'w', 438)
+            assert(output, 'Could not open destination file')
 
+            local stat = vim.loop.fs_fstat(input)
+            local data = vim.loop.fs_read(input, stat.size, 0)
+            vim.loop.fs_write(output, data, 0)
 
-local function c(root, projectfile, args)
-    if vim.fn.findfile(root .. '/' .. projectfile) ~= '' then
-        local config = read_config(root .. '/' .. projectfile)
-        if not config then
-            return
+            vim.loop.fs_close(input)
+            vim.loop.fs_close(output)
         end
-    else
-        local command = 'cd ' .. root .. '&& '
-        if vim.fn.findfile(root .. '/' .. 'CMakeLists.txt') ~= '' then
-            run(command .. 'cd build && cmake ..')
-        else
-            if vim.fn.glob(root .. '/*[Mm]akefile') == '' then
-                -- copy default makefile
-            end
-            run(command .. 'make')
-        end
+        return ' make -j ' .. args
     end
 end
 
@@ -94,35 +33,43 @@ end
 local cpp = c
 
 
-local function rust(root, projectfile, args)
-    if vim.fn.findfile(root .. '/' .. projectfile) ~= '' then
-        local config = read_config(root .. '/' .. projectfile)
-        if not config then
-            return
-        end
-    else
-        local command = 'cd ' .. root .. '&& '
-        if vim.fn.findfile(root .. '/Cargo.toml') ~= '' then
-            run(command .. 'cargo build')
-        end
+local function rust(root, args)
+    if vim.fn.findfile(root .. '/Cargo.toml') == '' then
+        print('Cargo.toml file not present.')
+        return
     end
+
+    local command = 'cargo run'
+    if args ~= '' then
+        command = command .. ' -- ' .. args
+    end
+
+    return command
 end
 
 
-local function lua(root, projectfile, args)
-    if vim.fn.findfile(root .. '/' .. projectfile) ~= '' then
-        local config = read_config(root .. '/' .. projectfile)
-        if not config then
-            return
-        end
-    else
-        local command = 'cd ' .. root .. '&& '
-        if vim.fn.findfile(root .. '/lua_modules') ~= '' then
-            run(command .. './lua ' .. vim.api.nvim_buf_get_name(0))
-        else
-            run(command .. 'lua ' .. vim.api.nvim_buf_get_name(0))
-        end
+local function lua(root, args)
+    local command = 'lua'
+    if vim.fn.findfile(root .. '/lua_modules') ~= '' then
+        command = './lua'
     end
+
+    command = command .. ' ' .. vim.api.nvim_buf_get_name(0)
+    if args ~= '' then
+        command = command .. ' ' .. args
+    end
+
+    return command
+end
+
+
+local function sh(root, args)
+    local command = 'chmod +x ' .. vim.api.nvim_buf_get_name(0) .. ' && '
+    command = command .. vim.api.nvim_buf_get_name(0)
+    if args ~= '' then
+        command = command .. ' ' .. args
+    end
+    return command
 end
 
 
@@ -131,5 +78,6 @@ return {
     c = c,
     cpp = cpp,
     rust = rust,
-    lua = lua
+    lua = lua,
+    sh = sh
 }
