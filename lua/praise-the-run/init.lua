@@ -3,57 +3,91 @@ local project = require('praise-the-run.project')
 
 local M = {}
 
+
+local function validate_language_config(lang, config)
+    if not config.project_file then
+        config.project_file = '.' .. lang .. 'project'
+    end
+
+    if not config.root_identifier then
+        config.root_identifier = {'.git', '.svn'}
+    end
+
+    if not config.run then
+        error('Run function for language ' .. lang .. ' is not specified.')
+    end
+end
+
+
 function M.setup(user_config)
     local config = user_config or {}
 
     local default_config = {
-        python = {
-            project_file = '.pyproject',
-            root_identifier = {'.git', '.svn'},
-            run = default_runners.python
-        },
-        c = {
-            project_file = '.cproject',
-            root_identifier = {'Makefile', 'makefile', 'CMakeLists.txt', '.git', '.svn'},
-            run = default_runners.c
-        },
-        cpp = {
-            project_file = '.cproject',
-            root_identifier = {'Makefile', 'makefile', 'CMakeLists.txt', '.git', '.svn'},
-            run = default_runners.cpp
-        },
-        rust = {
-            project_file = '.rustproject',
-            root_identifier = {'Cargo.toml', '.git', '.svn'},
-            run = default_runners.rust
-        },
-        lua = {
-            project_file = '.luaproject',
-            root_identifier = {'lua_modules', '.git', '.svn'},
-            run = default_runners.lua
-        },
-        sh = {
-            project_file = '.shproject',
-            root_identifier = {'.git', '.svn'},
-            run = default_runners.sh
+        call = project.call,
+        languages = {
+            python = {
+                project_file = '.pyproject',
+                root_identifier = {'.git', '.svn'},
+                run = default_runners.python
+            },
+            c = {
+                project_file = '.cproject',
+                root_identifier = {'Makefile', 'makefile', 'CMakeLists.txt', '.git', '.svn'},
+                run = default_runners.c
+            },
+            cpp = {
+                project_file = '.cproject',
+                root_identifier = {'Makefile', 'makefile', 'CMakeLists.txt', '.git', '.svn'},
+                run = default_runners.cpp
+            },
+            rust = {
+                project_file = '.rustproject',
+                root_identifier = {'Cargo.toml', '.git', '.svn'},
+                run = default_runners.rust
+            },
+            lua = {
+                project_file = '.luaproject',
+                root_identifier = {'lua_modules', '.git', '.svn'},
+                run = default_runners.lua
+            },
+            sh = {
+                project_file = '.shproject',
+                root_identifier = {'.git', '.svn'},
+                run = default_runners.sh
+            }
         }
     }
 
     -- Merge user config with default config
     config = vim.tbl_deep_extend('force', default_config, config)
 
+    M.languages = M.languages or {}
+
     -- Assign the merged configuration to M
-    M.python = config.python
-    M.c = config.c
-    M.cpp = config.cpp
-    M.rust = config.rust
-    M.lua = config.lua
-    M.sh = config.sh
+    M.call = config.call
+    for lang, settings in pairs(config.languages) do
+        validate_language_config(lang, settings)
+        M.languages[lang] = settings
+    end
+
+    -- Add new languages if specified
+    if user_config and user_config.languages then
+        for lang, settings in pairs(user_config.languages) do
+            if not M.languages[lang] then
+                validate_language_config(lang, settings)
+                M.languages[lang] = settings
+            end
+        end
+    end
 end
 
 
 function M.run(args)
-    project.run(M[vim.bo.filetype], args)
+    local command = project.run(M.languages[vim.bo.filetype], args)
+    if not command then
+        return
+    end
+    M.call(command)
 end
 
 vim.api.nvim_create_user_command('ProjectRun', function()
@@ -62,7 +96,11 @@ end, {})
 
 
 function M.prompt_and_run()
-    project.prompt_and_run(M[vim.bo.filetype])
+    local command = project.prompt_and_run(M.languages[vim.bo.filetype])
+    if not command then
+        return
+    end
+    M.call(command)
 end
 
 vim.api.nvim_create_user_command('ProjectRunWithArgs', function()
@@ -71,7 +109,7 @@ end, {})
 
 
 function M.open_project_file()
-    project.open_project_file(M[vim.bo.filetype])
+    project.open_project_file(M.languages[vim.bo.filetype])
 end
 
 vim.api.nvim_create_user_command('OpenProjectFile', function()

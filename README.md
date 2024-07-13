@@ -1,6 +1,6 @@
 ## Praise The Run
 
-Plugin for compiling/running python, c/c++, rust, lua, and sh scripts. It identifies the project root by traversing upwards in the directory tree, searching for specified identifiers. If no identifiers are found, the directory of the current file is assumed to be the root. You can also set custom run commands per project with a specified project file, which will be automatically included in the list of root identifiers.
+Plugin for compiling/running project. By default python, c/c++, rust, lua, and sh are supported, but other languages can be easily added. Upon run, plugin identifies the project root by traversing upwards in the directory tree, searching for specified identifiers. If no identifiers are found, the directory of the current file is assumed to be the root. You can also set custom run commands per project with a specified project file, which will be automatically included in the list of root identifiers.
 
 
 ### Default Runners
@@ -64,11 +64,11 @@ lua <args>
 ```bash
 cd <root>
 chmod +x <script>
-./<script> <args>
+<script> <args>
 ```
 
 
-### Install
+### Installation
 
 Add the following to your neovim configuration:
 
@@ -84,64 +84,118 @@ Add the following to your neovim configuration:
 
 ### Configuration (optional)
 
-You can define custom runners for each language:
-
+Default configuration:
 ```lua
--- Every runner func should return commnad as a string
--- The first command will always be `cd <root>` regardless of runner function
-local function custom_python_runner(root, args)
-    ...
-end
-
-local function custom_c_runner(root, args)
-    ...
-end
-
-local function custom_rust_runner(root, args)
-    ...
-end
-
-local function custom_lua_runner(root, args)
-    ...
-end
-
-local function custom_sh_runner(root, args)
-    ...
-end
-
 require('praise-the-run').setup({
-    python = {
-        project_file = '.pyproject',
-        root_identifier = {'.git', '.svn'},
-        run = custum_python_runner
-    },
+    call = require('praise-the-run.project').call,
+    languages = {
+        python = {
+            project_file = '.pyproject',
+            root_identifier = {'.git', '.svn'},
+            run = require('praise-the-run.default_runners').python,
+        },
 
-    c = {
-        project_file = '.cproject',
-        root_identifier = {'Makefile', 'makefile', 'CMakeLists.txt', '.git', '.svn'},
-        run = custom_c_runner
-    },
-    cpp = c,
+        c = {
+            project_file = '.cproject',
+            root_identifier = {'Makefile', 'makefile', 'CMakeLists.txt', '.git', '.svn'},
+            run = require('praise-the-run.default_runners').c,
+        },
 
-    rust = {
-        project_file = '.rustproject',
-        root_identifier = {'Cargo.toml', '.git', '.svn'},
-        run = custom_rust_runner
-    },
+        cpp = {
+            project_file = '.cproject',
+            root_identifier = {'Makefile', 'makefile', 'CMakeLists.txt', '.git', '.svn'},
+            run = require('praise-the-run.default_runners').cpp,
+        },
 
-    lua = {
-        project_file = '.luaproject',
-        root_identifier = {'lua_modules', '.git', '.svn'},
-        run = custom_lua_runner
-    },
+        rust = {
+            project_file = '.rustproject',
+            root_identifier = {'Cargo.toml', '.git', '.svn'},
+            run = require('praise-the-run.default_runners').rust,
+        },
 
-    sh = {
-        project_file = '.shproject',
-        root_identifier = {'.git', '.svn'},
-        run = custom_sh_runner
+        lua = {
+            project_file = '.luaproject',
+            root_identifier = {'lua_modules', '.git', '.svn'},
+            run = require('praise-the-run.default_runners').lua,
+        },
+
+        sh = {
+            project_file = '.shproject',
+            root_identifier = {'.git', '.svn'},
+            run = require('praise-the-run.default_runners').sh,
+        }
     }
 })
 ```
+
+#### Call command
+
+Default call function will run specified command in integrated terminal:
+```vim
+exe 'split' | exe 'terminal %s'
+call cursor(line('w$'), col('.'))
+```
+
+You can change this with custom call command that is using telescope or whatever you
+desire. I like using terminal, and I also use following keybinding:
+```vim
+function! TerminalMappings()
+    nmap <silent><buffer> <Cr> :q! \| echo('Terminal closed')<Cr>
+endfunction
+
+augroup TerminalStuff
+    au!
+    au TermOpen * call TerminalMappings()
+augroup end
+```
+Which is allowing me to close the terminal when enter is pressed.
+
+
+#### Runners
+
+You can override runners with custom function:
+```lua
+local function custom_runner(root, args)
+    -- First command of the runner will always be `cd <root>`
+    local command = '<cmd> ' .. vim.api.nvim_buf_get_name(0)
+    if args ~= '' then
+        command = command .. ' ' .. args
+    end
+    return command
+
+    -- You can do the same as above by using default runner:
+    -- return require('praise-the-run.default_runners').default_runner('<cmd>', args)
+end
+
+require('praise-the-run').setup({
+    languages = {
+        <lang> = {
+            run = custom_runner
+        }
+    }
+})
+```
+Runner function is taking two arguments, the root path and provided arguments.
+Function should always return command that should be run, represented as a string.
+
+#### Add custom support for other languages
+
+You configure languages that are not support. <lang> should match output of `:echo &filetype` for desired file type.
+
+```lua
+require('praise-the-run').setup({
+    languages = {
+        <lang> = {
+            project_file = '.langproject',      --> optional, if nill, .<lang>project will be assigned
+            root_identifier = {'.git', '.svn'}, --> optional, if nil, this will be assigned
+            run = function(root, args)          --> mandatory
+                return require('praise-the-run.default_runners').default_runner('cmd', args)
+            end
+        }
+    }
+})
+```
+
 
 ### Running
 
@@ -174,7 +228,7 @@ Example project file:
     "pre": ["./autoconfig"], /* List of pre-run commands */
     "run": "make",           /* Command that should be run */
     "args": "-j",            /* Arguments to run command */
-    "post": ["./run-bin"],   /* List of pros-run commands */
+    "post": ["./run-bin"],   /* List of post-run commands */
 }
 ```
 

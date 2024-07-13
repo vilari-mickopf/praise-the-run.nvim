@@ -67,7 +67,7 @@ end
 
 function M.sh(root, args)
     local command = 'chmod +x ' .. vim.api.nvim_buf_get_name(0) .. ' && '
-    command = command .. vim.api.nvim_buf_get_name(0)
+    command = command .. './' .. vim.api.nvim_buf_get_name(0)
     if args ~= '' then
         command = command .. ' ' .. args
     end

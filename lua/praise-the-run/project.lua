@@ -32,7 +32,7 @@ local function read_project_file(path)
 end
 
 
-local function call(command)
+function M.call(command)
     -- Open a split, run the command in a terminal, and set the buffer name
     vim.cmd(string.format([[
         exe 'split' | exe 'terminal %s'
@@ -103,7 +103,7 @@ function M.run(lang_config, args)
         command = ' ' .. command
     end
 
-    call('cd ' .. root .. ' &&' .. command)
+    return 'cd ' .. root .. ' &&' .. command
 end
 
 
@@ -116,7 +116,7 @@ function M.prompt_and_run(lang_config)
         return
     end
 
-    M.run(lang_config, args)
+    return M.run(lang_config, args)
 end
 
 
