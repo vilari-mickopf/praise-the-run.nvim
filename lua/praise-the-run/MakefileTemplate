@@ -17,8 +17,8 @@ LD = g++
 
 # Files excluded from compiling
 # Info: You need to specify relative path or filename, examples:
-# ./path/to/file.c 	-> exclude path/to/file.c file
-# ./path 			-> exclude whole path dir in current folder
+# path/to/file.c 	-> exclude path/to/file.c file
+# path 				-> exclude whole path dir in current folder
 # file.c 			-> exclude all files with name file.c
 EXCLUDE =
 
@@ -66,7 +66,7 @@ CXXFLAGS +=-Wconversion
 # Warn if the compiler detects that code will never be executed*.
 CXXFLAGS +=-Wunreachable-code
 # For asan (compiling with clang needed)
-#CXXFLAGS +=-fsanitize=address -fno-omit-frame-pointer
+# CXXFLAGS +=-fsanitize=address -fno-omit-frame-pointer
 
 ## C flags
 CFLAGS = ${CXXFLAGS}
@@ -135,12 +135,15 @@ find_files = $(strip $(call exclude_files, $(1), $(call exclude_dirs, $(1), $(ca
 
 
 #============================== FILE SCANNING =================================#
+# Prepend excluded with ./ if already
+EXCLUDE := $(foreach item,$(EXCLUDE),$(if $(filter ./%,$(item)),$(item),./$(item)))
+
 # Find all h header files
-C_INC_DIRS := $(call uniq,$(sort $(dir $(call rwildcard,./,*.h))))
+C_INC_DIRS := $(call uniq,$(sort $(dir $(call find_files,$(EXCLUDE),*.h))))
 C_INC_DIRS_ECHO := $(addprefix -I"$(BLUE_COLOR),$(addsuffix $(END_COLOR)",$(C_INC_DIRS)))
 
 # Find all hpp header files
-CXX_INC_DIRS := $(call uniq,$(sort $(dir $(call rwildcard,./,*.hpp))))
+CXX_INC_DIRS := $(call uniq,$(sort $(dir $(call find_files,$(EXCLUDE),*.hpp))))
 CXX_INC_DIRS_ECHO := $(addprefix -I"$(BLUE_COLOR),$(addsuffix $(END_COLOR)",$(CXX_INC_DIRS)))
 
 # Additional header files
