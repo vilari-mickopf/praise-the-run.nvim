@@ -1,6 +1,6 @@
 ## Praise The Run
 
-Plugin for compiling/running project. By default python, c/c++, rust, lua, and sh are supported, but other languages can be easily added. Upon run, plugin identifies the project root by traversing upwards in the directory tree, searching for specified identifiers. If no identifiers are found, the directory of the current file is assumed to be the root. You can also set custom run commands per project with a specified project file, which will be automatically included in the list of root identifiers.
+Plugin for compiling/running different projects. By default python, c/c++, rust, lua, and sh are supported, but other languages can be easily added. Upon run, plugin identifies the project root by traversing upwards in the directory tree, searching for specified identifiers. If no identifiers are found, the directory of the current file is assumed to be the root. You can also set custom run commands per project with a specified project file, which will be automatically included in the list of root identifiers.
 
 
 ### Default Runners
