@@ -1,11 +1,27 @@
 local M = {}
 
-function M.python(root, args)
-    local command = 'python ' .. vim.api.nvim_buf_get_name(0)
+
+
+function M.default_runner(command, root, args)
+    -- get path relative to root
+    local file_path = vim.api.nvim_buf_get_name(0)
+    local relative_path = vim.fn.fnamemodify(file_path, ":." .. root)
+
+    if string.sub(command, -1) ~= '/' then
+        command = command .. ' '
+    end
+
+    command = command .. relative_path
     if args ~= '' then
         command = command .. ' ' .. args
     end
+
     return command
+end
+
+
+function M.python(root, args)
+    return M.default_runner('python', root, args)
 end
 
 
@@ -64,26 +80,19 @@ end
 
 function M.lua(root, args)
     local command = 'lua'
-    if vim.fn.findfile(root .. '/lua_modules') ~= '' then
+
+    local stat = vim.loop.fs_stat(root .. '/lua_modules')
+    if stat and stat.type == 'directory' then
         command = './lua'
     end
 
-    command = command .. ' ' .. vim.api.nvim_buf_get_name(0)
-    if args ~= '' then
-        command = command .. ' ' .. args
-    end
-
-    return command
+    return M.default_runner(command, root, args)
 end
 
 
 function M.sh(root, args)
     local command = 'chmod +x ' .. vim.api.nvim_buf_get_name(0) .. ' && '
-    command = command .. './' .. vim.api.nvim_buf_get_name(0)
-    if args ~= '' then
-        command = command .. ' ' .. args
-    end
-    return command
+    return M.default_runner(command .. './', root, args)
 end
 
 

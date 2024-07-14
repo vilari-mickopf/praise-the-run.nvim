@@ -1,6 +1,6 @@
 ## Praise The Run
 
-Plugin for compiling/running different projects. By default python, c/c++, rust, lua, and sh are supported, but other languages can be easily added. Upon run, plugin identifies the project root by traversing upwards in the directory tree, searching for specified identifiers. If no identifiers are found, the directory of the current file is assumed to be the root. You can also set custom run commands per project with a specified project file, which will be automatically included in the list of root identifiers.
+Plugin for compiling/running different projects. By default python, c/c++, rust, lua, and sh are supported, but other languages can be easily added. Upon run, plugin identifies the project root from lsp. If lsp is not present/initialized, root will be determined by traversing upwards in the directory tree, searching for specified identifiers. If no identifiers are found, the directory of the current file is assumed to be the root. You can also set custom run commands per project with a specified project file, which will be automatically included in the list of root identifiers.
 
 
 ### Default Runners
@@ -162,7 +162,7 @@ local function custom_runner(root, args)
     return command
 
     -- You can do the same as above by using default runner:
-    -- return require('praise-the-run.default_runners').default_runner('<cmd>', args)
+    -- return require('praise-the-run.default_runners').default_runner('<cmd>', root, args)
 end
 
 require('praise-the-run').setup({
@@ -185,7 +185,7 @@ require('praise-the-run').setup({
             project_file = '.langproject',      --> optional, if nill, .<lang>project will be assigned
             root_identifier = {'.git', '.svn'}, --> optional, if nil, this will be assigned
             run = function(root, args)          --> mandatory
-                return require('praise-the-run.default_runners').default_runner('cmd', args)
+                return require('praise-the-run.default_runners').default_runner('cmd', root, args)
             end
         }
     }
@@ -260,9 +260,9 @@ If the file doesn't exist, a dummy project file with all fields empty will be cr
 
 #### My keybindings
 ```vim
-nmap <silent> <buffer> <leader>p :OpenProjectFile<Cr>
-nmap <silent> <buffer> <leader>c :wa<Cr>:ProjectRun<Cr>
-nmap <silent> <buffer> <leader>C :wa<Cr>:ProjectRunWithArgs<Cr>
+nmap <silent> <leader>p :OpenProjectFile<Cr>
+nmap <silent> <leader>c :wa<Cr>:ProjectRun<Cr>
+nmap <silent> <leader>C :wa<Cr>:ProjectRunWithArgs<Cr>
 ```
 
 ------

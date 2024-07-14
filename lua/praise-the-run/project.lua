@@ -1,7 +1,31 @@
 local M = {}
 
 
+local function find_lsp_root()
+    local clients = vim.lsp.get_clients()
+    if next(clients) == nil then
+        return nil
+    end
+
+    for _, client in pairs(clients) do
+        if client.config.root_dir then
+            local root_dir = client.config.root_dir
+            if vim.fn.fnamemodify(vim.fn.expand('%:p'), ':h'):sub(1, #root_dir) == root_dir then
+                return root_dir
+            end
+        end
+    end
+
+    return nil
+end
+
+
 local function find_root(patterns)
+    local root = find_lsp_root()
+    if root then
+        return root
+    end
+
     local path = vim.fn.expand('%:p:h')
 
     while path ~= '/' do
@@ -52,10 +76,10 @@ end
 
 
 local function run_with_project_config(run, args, project_config)
-    local command = append('', project_config.pre, ' ', ' &&')
+    local command = append(' ', project_config.pre, '', ' && ')
 
     if project_config.run ~= '' then
-        command = command .. ' ' .. project_config.run
+        command = command .. project_config.run
         if args ~= '' then
             command = command .. ' ' .. args
         elseif project_config.args ~= '' then
