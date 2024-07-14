@@ -40,6 +40,16 @@ function M.setup(user_config)
                 root_identifier = {'Makefile', 'makefile', 'CMakeLists.txt', '.git', '.svn'},
                 run = default_runners.cpp
             },
+            make = {
+                project_file = '.cproject',
+                root_identifier = {'Makefile', 'makefile', 'CMakeLists.txt', '.git', '.svn'},
+                run = default_runners.make
+            },
+            cmake = {
+                project_file = '.cproject',
+                root_identifier = {'CMakeLists.txt', '.git', '.svn'},
+                run = default_runners.cmake
+            },
             rust = {
                 project_file = '.rustproject',
                 root_identifier = {'Cargo.toml', '.git', '.svn'},

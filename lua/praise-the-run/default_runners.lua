@@ -9,10 +9,21 @@ function M.python(root, args)
 end
 
 
+function M.make(root, args)
+    return ' make -j ' .. args
+end
+
+
+function M.cmake(root, args)
+    return ' cd build && cmake .. ' .. args .. ' && make -j'
+end
+
+
 function M.c(root, args)
     if vim.fn.findfile(root .. '/' .. 'CMakeLists.txt') ~= '' then
-        return ' cd build && cmake .. ' .. args .. ' && make -j'
+        return M.cmake(root, args)
     else
+        -- Add template makefile if not present already
         if vim.fn.glob(root .. '/*[Mm]akefile') == '' then
             local script_dir = debug.getinfo(2, 'S').source:sub(2):match('(.*/)')
             local input = vim.loop.fs_open(script_dir .. '/MakefileTemplate', 'r', 438)
@@ -27,7 +38,8 @@ function M.c(root, args)
             vim.loop.fs_close(input)
             vim.loop.fs_close(output)
         end
-        return ' make -j ' .. args
+
+        return M.make(root, args)
     end
 end
 
