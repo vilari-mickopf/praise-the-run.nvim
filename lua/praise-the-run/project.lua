@@ -59,7 +59,8 @@ end
 function M.call(command)
     -- Open a split, run the command in a terminal, and set the buffer name
     vim.cmd(string.format([[
-        exe 'split' | exe 'terminal %s'
+        split
+        terminal %s
         call cursor(line('w$'), col('.'))
     ]], command))
 end

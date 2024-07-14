@@ -96,4 +96,54 @@ function M.sh(root, args)
 end
 
 
+function M.markdown(root, args)
+    if not string.find(args, '%-o') then
+        args = args .. '-o ' .. string.gsub(vim.api.nvim_buf_get_name(0), '%.%w+$', '.pdf')
+    end
+
+    return M.default_runner('pandoc --verbose', root, args)
+end
+
+
+function M.rmarkdown(root, args)
+    local file_path = vim.api.nvim_buf_get_name(0)
+    local relative_path = vim.fn.fnamemodify(file_path, ":." .. root)
+
+    local command = 'echo \"require(rmarkdown); render(\'' .. relative_path .. '\')\" | R'
+
+    if args ~= '' then
+        command = command .. ' ' .. args
+    else
+        command = command .. ' --vanilla'
+    end
+
+    return command
+end
+
+
+function M.tex(root, args)
+    local file_path = vim.api.nvim_buf_get_name(0)
+    local relative_path = vim.fn.fnamemodify(file_path, ':.' .. root)
+
+    local pdflatex = 'pdflatex ' .. relative_path
+    local bibtex= 'bibtex ' .. relative_path:gsub('%.tex$', '')
+    local biber= 'biber ' .. relative_path:gsub('%.tex$', '')
+    local bibliography = "grep -q 'bibliography' " .. relative_path
+    local biblatex = "grep -q 'biblatex' " .. relative_path
+
+    return string.format(
+        'bash -c "%s && if %s; then if %s; then %s && %s && %s; else %s && %s && %s; fi; fi"',
+        pdflatex,
+        bibliography,
+        biblatex,
+        biber,
+        pdflatex,
+        pdflatex,
+        bibtex,
+        pdflatex,
+        pdflatex
+    )
+end
+
+
 return M

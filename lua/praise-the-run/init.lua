@@ -64,7 +64,28 @@ function M.setup(user_config)
                 project_file = '.shproject',
                 root_identifier = {'.git', '.svn'},
                 run = default_runners.sh
-            }
+            },
+            markdown = {
+                project_file = '.mdproject',
+                root_identifier = {'.git', '.svn'},
+                run = default_runners.markdown
+            },
+            rmd = {
+                project_file = '.rmdproject',
+                root_identifier = {'.git', '.svn'},
+                run = default_runners.rmarkdown
+            },
+            tex = {
+                project_file = '.texproject',
+                root_identifier = {'.git', '.svn'},
+                run = default_runners.tex
+            },
+            plaintex = {
+                project_file = '.texproject',
+                root_identifier = {'.git', '.svn'},
+                run = default_runners.tex
+            },
+
         }
     }
 
