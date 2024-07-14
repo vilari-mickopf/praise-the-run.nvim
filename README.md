@@ -136,8 +136,7 @@ exe 'split' | exe 'terminal %s'
 call cursor(line('w$'), col('.'))
 ```
 
-You can change this with custom call command that is using telescope or whatever you
-desire. I like using terminal, and I also use following keybinding:
+You can customize this by using a custom call command. Personally, I prefer using the terminal in a split window. Here are some additional keybindings that allow me to close the terminal when enter is pressed:
 ```vim
 function! TerminalMappings()
     nmap <silent><buffer> <Cr> :q! \| echo('Terminal closed')<Cr>
@@ -148,12 +147,11 @@ augroup TerminalStuff
     au TermOpen * call TerminalMappings()
 augroup end
 ```
-Which is allowing me to close the terminal when enter is pressed.
 
 
 #### Runners
 
-You can override runners with custom function:
+You can override any runner with a custom function:
 ```lua
 local function custom_runner(root, args)
     -- First command of the runner will always be `cd <root>`
@@ -175,13 +173,11 @@ require('praise-the-run').setup({
     }
 })
 ```
-Runner function is taking two arguments, the root path and provided arguments.
-Function should always return command that should be run, represented as a string.
+The runner function takes two arguments: the root path and the provided arguments. It should always return the command to be run, represented as a string.
 
 #### Add custom support for other languages
 
-You configure languages that are not support. <lang> should match output of `:echo &filetype` for desired file type.
-
+You configure languages that are not support. `<lang>` should match the output of `:echo &filetype` for desired file type.
 ```lua
 require('praise-the-run').setup({
     languages = {
