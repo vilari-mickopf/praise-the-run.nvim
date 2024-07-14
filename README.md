@@ -177,7 +177,7 @@ The runner function takes two arguments: the root path and the provided argument
 
 #### Add custom support for other languages
 
-You configure languages that are not support. `<lang>` should match the output of `:echo &filetype` for desired file type.
+You can configure languages that are not support. `<lang>` should match the output of `:echo &filetype` for desired file type.
 ```lua
 require('praise-the-run').setup({
     languages = {
@@ -239,7 +239,7 @@ Can be particularly useful for python projects where you need to run a specific 
 }
 ```
 
-If `require('praise-the-run').run(<args>)` is used, the provided arguments (<args>) will override the arguments specified in the configuration file.
+If `require('praise-the-run').run(<args>)` is used, the provided arguments `<args>` will override the arguments specified in the project file.
 
 
 #### Opening the Project File
