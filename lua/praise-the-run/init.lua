@@ -32,17 +32,17 @@ function M.setup(user_config)
             },
             c = {
                 project_file = '.cproject',
-                root_identifier = {'Makefile', 'makefile', 'CMakeLists.txt', '.git', '.svn'},
+                root_identifier = {'[Mm]akefile', 'CMakeLists.txt', '.git', '.svn'},
                 run = default_runners.c
             },
             cpp = {
                 project_file = '.cproject',
-                root_identifier = {'Makefile', 'makefile', 'CMakeLists.txt', '.git', '.svn'},
+                root_identifier = {'[Mm]akefile', 'CMakeLists.txt', '.git', '.svn'},
                 run = default_runners.cpp
             },
             make = {
                 project_file = '.cproject',
-                root_identifier = {'Makefile', 'makefile', 'CMakeLists.txt', '.git', '.svn'},
+                root_identifier = {'[Mm]akefile', 'CMakeLists.txt', '.git', '.svn'},
                 run = default_runners.make
             },
             cmake = {
@@ -65,6 +65,16 @@ function M.setup(user_config)
                 root_identifier = {'.git', '.svn'},
                 run = default_runners.sh
             },
+            haskell = {
+                project_file = '.hsproject',
+                root_identifier = {'*.cabal', '.git', '.svn'},
+                run = default_runners.haskell
+            },
+            matlab = {
+                project_file = '.mproject',
+                root_identifier = {'.git', '.svn'},
+                run = default_runners.matlab
+            },
             markdown = {
                 project_file = '.mdproject',
                 root_identifier = {'.git', '.svn'},
@@ -84,8 +94,7 @@ function M.setup(user_config)
                 project_file = '.texproject',
                 root_identifier = {'.git', '.svn'},
                 run = default_runners.tex
-            },
-
+            }
         }
     }
 

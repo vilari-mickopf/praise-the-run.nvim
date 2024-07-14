@@ -1,6 +1,6 @@
 ## Praise The Run
 
-Plugin for compiling/running different projects. By default python, c/c++, rust, lua, sh, markdown, rmarkdown and tex are supported, but other languages can be easily added. Upon run, plugin identifies the project root from lsp. If lsp is not present/initialized, root will be determined by traversing upwards in the directory tree, searching for specified identifiers. If no identifiers are found, the directory of the current file is assumed to be the root. You can also set custom run commands per project with a specified project file, which will be automatically included in the list of root identifiers.
+Plugin for compiling/running different projects. By default python, c/c++, rust, lua, sh, haskell, matlab, markdown, rmarkdown and latex are supported, but other languages can be easily added. Upon run, plugin identifies the project root from lsp. If lsp is not present/initialized, root will be determined by traversing upwards in the directory tree, searching for specified identifiers. If no identifiers are found, the directory of the current file is assumed to be the root. You can also set custom run commands per project with a specified project file, which will be automatically included in the list of root identifiers.
 
 
 ### Default Runners
@@ -8,7 +8,7 @@ Plugin for compiling/running different projects. By default python, c/c++, rust,
 #### python
 ```bash
 cd <root>
-python <current_script> <args>
+python <script> <args>
 ```
 
 #### c/c++
@@ -49,14 +49,14 @@ cargo run -- <args>
 
 ```bash
 cd <root>
-./lua <args>
+./lua <script> <args>
 
 ```
 - Otherwise:
 
 ```bash
 cd <root>
-lua <args>
+lua <script> <args>
 ```
 
 #### sh
@@ -64,7 +64,53 @@ lua <args>
 ```bash
 cd <root>
 chmod +x <script>
-<script> <args>
+./<script> <args>
+```
+
+#### haskell
+
+- If `*.cabal` file exists:
+
+```bash
+cd <root>
+cabal run
+
+```
+- Otherwise:
+
+```bash
+cd <root>
+ghc -o <dirname> <script> && ./<dirname>
+```
+
+#### matlab
+
+```bash
+cd <root>
+octave <script> <args>
+```
+
+#### markdown
+
+```bash
+cd <root>
+pandoc --verbose -o <script:%.pdf>
+```
+_***Note**: `-o script:%.pdf` will be passed only if `-o` is not present in args._
+
+#### rmarkdown
+
+```bash
+cd <root>
+echo "require(rmarkdown); render('<script>')" | R --vanila
+```
+_***Note**: `--vanila` is passed only if args are not specifed._
+
+#### latex
+
+```bash
+cd <root>
+sh -c "pdflatex <script> && if grep -q 'bibliography' <script>; then if grep -q 'biblatex' <script>; then biber <script:%.> && pdflatex <script> && pdflatex <script>; else bibtex <script:%.> && pdflatex <script> && pdflatex <script>; fi; fi"
 ```
 
 
@@ -88,43 +134,73 @@ Default configuration:
 ```lua
 require('praise-the-run').setup({
     call = require('praise-the-run.project').call,
-    languages = {
-        python = {
-            project_file = '.pyproject',
-            root_identifier = {'.git', '.svn'},
-            run = require('praise-the-run.default_runners').python,
-        },
-
-        c = {
-            project_file = '.cproject',
-            root_identifier = {'Makefile', 'makefile', 'CMakeLists.txt', '.git', '.svn'},
-            run = require('praise-the-run.default_runners').c,
-        },
-
-        cpp = {
-            project_file = '.cproject',
-            root_identifier = {'Makefile', 'makefile', 'CMakeLists.txt', '.git', '.svn'},
-            run = require('praise-the-run.default_runners').cpp,
-        },
-
-        rust = {
-            project_file = '.rustproject',
-            root_identifier = {'Cargo.toml', '.git', '.svn'},
-            run = require('praise-the-run.default_runners').rust,
-        },
-
-        lua = {
-            project_file = '.luaproject',
-            root_identifier = {'lua_modules', '.git', '.svn'},
-            run = require('praise-the-run.default_runners').lua,
-        },
-
-        sh = {
-            project_file = '.shproject',
-            root_identifier = {'.git', '.svn'},
-            run = require('praise-the-run.default_runners').sh,
+        languages = {
+            python = {
+                project_file = '.pyproject',
+                root_identifier = {'.git', '.svn'},
+                run = default_runners.python
+            },
+            c = {
+                project_file = '.cproject',
+                root_identifier = {'[Mm]akefile', 'CMakeLists.txt', '.git', '.svn'},
+                run = default_runners.c
+            },
+            cpp = {
+                project_file = '.cproject',
+                root_identifier = {'[Mm]akefile', 'CMakeLists.txt', '.git', '.svn'},
+                run = default_runners.cpp
+            },
+            make = {
+                project_file = '.cproject',
+                root_identifier = {'[Mm]akefile', 'CMakeLists.txt', '.git', '.svn'},
+                run = default_runners.make
+            },
+            cmake = {
+                project_file = '.cproject',
+                root_identifier = {'CMakeLists.txt', '.git', '.svn'},
+                run = default_runners.cmake
+            },
+            rust = {
+                project_file = '.rustproject',
+                root_identifier = {'Cargo.toml', '.git', '.svn'},
+                run = default_runners.rust
+            },
+            lua = {
+                project_file = '.luaproject',
+                root_identifier = {'lua_modules', '.git', '.svn'},
+                run = default_runners.lua
+            },
+            sh = {
+                project_file = '.shproject',
+                root_identifier = {'.git', '.svn'},
+                run = default_runners.sh
+            },
+            haskell = {
+                project_file = '.hsproject',
+                root_identifier = {'*.cabal', '.git', '.svn'},
+                run = default_runners.haskell
+            },
+            matlab = {
+                project_file = '.mproject',
+                root_identifier = {'.git', '.svn'},
+                run = default_runners.matlab
+            },
+            markdown = {
+                project_file = '.mdproject',
+                root_identifier = {'.git', '.svn'},
+                run = default_runners.markdown
+            },
+            rmd = {
+                project_file = '.rmdproject',
+                root_identifier = {'.git', '.svn'},
+                run = default_runners.rmarkdown
+            },
+            tex = {
+                project_file = '.texproject',
+                root_identifier = {'.git', '.svn'},
+                run = default_runners.tex
+            }
         }
-    }
 })
 ```
 

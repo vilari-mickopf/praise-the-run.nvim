@@ -30,9 +30,14 @@ local function find_root(patterns)
 
     while path ~= '/' do
         for _, pattern in ipairs(patterns) do
-            local test_path = path .. '/' .. pattern
-            if vim.loop.fs_stat(test_path) then
+            if vim.fn.glob(path .. '/' .. pattern) ~= '' then
                 return path
+            end
+
+            for _, dir in ipairs(vim.fn.globpath(path, pattern, true, true)) do
+                if vim.loop.fs_stat(dir) and vim.loop.fs_stat(dir).type == 'directory' then
+                    return path
+                end
             end
         end
         path = vim.fn.fnamemodify(path, ':h')  -- Go up one directory level

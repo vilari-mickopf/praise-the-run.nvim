@@ -26,12 +26,12 @@ end
 
 
 function M.make(root, args)
-    return ' make -j ' .. args
+    return 'make -j ' .. args
 end
 
 
 function M.cmake(root, args)
-    return ' cd build && cmake .. ' .. args .. ' && make -j'
+    return 'mkdir build && cd build && cmake .. ' .. args .. ' && make -j'
 end
 
 
@@ -96,6 +96,23 @@ function M.sh(root, args)
 end
 
 
+function M.haskell(root, args)
+    if vim.fn.glob(root .. '/' .. '*.cabal') ~= '' then
+        return 'cabal run'
+    else
+        local file_path = vim.api.nvim_buf_get_name(0)
+        local relative_path = vim.fn.fnamemodify(file_path, ":." .. root)
+        local out = string.match(root, '([^/]+)$')
+        return 'ghc -o ' .. out .. ' ' .. relative_path .. ' && ./' .. out
+    end
+end
+
+
+function M.matlab(root, args)
+    return M.default_runner('octave', root, args)
+end
+
+
 function M.markdown(root, args)
     if not string.find(args, '%-o') then
         args = args .. '-o ' .. string.gsub(vim.api.nvim_buf_get_name(0), '%.%w+$', '.pdf')
@@ -132,7 +149,7 @@ function M.tex(root, args)
     local biblatex = "grep -q 'biblatex' " .. relative_path
 
     return string.format(
-        'bash -c "%s && if %s; then if %s; then %s && %s && %s; else %s && %s && %s; fi; fi"',
+        'sh -c "%s && if %s; then if %s; then %s && %s && %s; else %s && %s && %s; fi; fi"',
         pdflatex,
         bibliography,
         biblatex,
