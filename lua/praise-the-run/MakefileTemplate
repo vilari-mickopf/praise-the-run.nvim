@@ -135,7 +135,7 @@ find_files = $(strip $(call exclude_files, $(1), $(call exclude_dirs, $(1), $(ca
 
 
 #============================== FILE SCANNING =================================#
-# Prepend excluded with ./ if already
+# Prepend excluded paths with ./ if not already present
 EXCLUDE := $(foreach item,$(EXCLUDE),$(if $(filter ./%,$(item)),$(item),./$(item)))
 
 # Find all h header files
