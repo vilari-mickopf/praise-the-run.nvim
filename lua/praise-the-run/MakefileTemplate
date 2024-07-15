@@ -128,10 +128,17 @@ rwildcard = $(wildcard $1$2) $(foreach d,$(filter-out $(wildcard $1.*),$(wildcar
 # Remove multiple same instances from the list
 uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 
-exclude_files = $(if $(strip $(1)), $(filter-out $(1), $(filter-out $(addprefix %, $(notdir $(1))), $(2))), $(2))
-exclude_dirs = $(if $(strip $(1)), $(foreach dir,$(1),$(filter-out $(dir)%,$(2))), $(2))
+# Exclude specified files
+exclude_files = $(filter-out $(1), $(2))
 
-find_files = $(strip $(call exclude_files, $(1), $(call exclude_dirs, $(1), $(call rwildcard,./,$(2)))))
+# Exclude specified directories
+define exclude_dirs
+$(foreach dir,$(1),$(eval _result := $(filter-out $(dir)%,$(_result))))
+$(_result)
+endef
+
+# Find files excluding specified files and directories
+find_files = $(eval _result := $(call rwildcard,./,$(1)))$(strip $(call exclude_files,$(filter %.c %.cpp %.h %.hpp,$(EXCLUDE)),$(call exclude_dirs,$(filter-out %.c %.cpp %.h %.hpp,$(EXCLUDE)))))
 
 
 #============================== FILE SCANNING =================================#
@@ -139,11 +146,11 @@ find_files = $(strip $(call exclude_files, $(1), $(call exclude_dirs, $(1), $(ca
 EXCLUDE := $(foreach item,$(EXCLUDE),$(if $(filter ./%,$(item)),$(item),./$(item)))
 
 # Find all h header files
-C_INC_DIRS := $(call uniq,$(sort $(dir $(call find_files,$(EXCLUDE),*.h))))
+C_INC_DIRS := $(call uniq,$(sort $(dir $(call find_files,*.h))))
 C_INC_DIRS_ECHO := $(addprefix -I"$(BLUE_COLOR),$(addsuffix $(END_COLOR)",$(C_INC_DIRS)))
 
 # Find all hpp header files
-CXX_INC_DIRS := $(call uniq,$(sort $(dir $(call find_files,$(EXCLUDE),*.hpp))))
+CXX_INC_DIRS := $(call uniq,$(sort $(dir $(call find_files,*.hpp))))
 CXX_INC_DIRS_ECHO := $(addprefix -I"$(BLUE_COLOR),$(addsuffix $(END_COLOR)",$(CXX_INC_DIRS)))
 
 # Additional header files
@@ -155,16 +162,15 @@ INC_DIRS := $(addprefix -I",$(addsuffix ",$(ADDITIONAL_INC_DIRS) $(CXX_INC_DIRS)
 INC_DIRS_ECHO := $(ADDITIONAL_INC_DIRS_ECHO) $(CXX_INC_DIRS_ECHO) $(C_INC_DIRS_ECHO)
 
 # Find all c source files
-C_SRCS := $(call find_files,$(EXCLUDE),*.c)
+C_SRCS := $(call find_files,*.c)
 C_OBJS := $(strip $(patsubst %c, %o, $(C_SRCS)))
 
 # Find all cpp source files
-CXX_SRCS := $(call find_files,$(EXCLUDE),*.cpp)
+CXX_SRCS := $(call find_files,*.cpp)
 CXX_OBJS := $(strip $(patsubst %cpp, %o, $(CXX_SRCS)))
 
 # Join all objs in one variable
 OBJS := $(CXX_OBJS) $(C_OBJS)
-
 
 #=============================== BUILDING =====================================#
 # Rebuild target
