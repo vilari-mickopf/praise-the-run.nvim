@@ -32,6 +32,10 @@ end
 
 
 function M.cmake(root, args)
+    if args == 'clean' then
+        return 'rm -rf build'
+    end
+
     return 'mkdir -p build && cd build && cmake .. ' .. args .. ' && make -j'
 end
 
@@ -39,25 +43,25 @@ end
 function M.c(root, args)
     if vim.fn.findfile(root .. '/' .. 'CMakeLists.txt') ~= '' then
         return M.cmake(root, args)
-    else
-        -- Add template makefile if not present already
-        if vim.fn.glob(root .. '/*[Mm]akefile') == '' then
-            local script_dir = debug.getinfo(2, 'S').source:sub(2):match('(.*/)')
-            local input = vim.loop.fs_open(script_dir .. '/MakefileTemplate', 'r', 438)
-            assert(input, 'Could not open source file')
-            local output = vim.loop.fs_open(root .. '/Makefile', 'w', 438)
-            assert(output, 'Could not open destination file')
-
-            local stat = vim.loop.fs_fstat(input)
-            local data = vim.loop.fs_read(input, stat.size, 0)
-            vim.loop.fs_write(output, data, 0)
-
-            vim.loop.fs_close(input)
-            vim.loop.fs_close(output)
-        end
-
-        return M.make(root, args)
     end
+
+    -- Add template makefile if not present already
+    if vim.fn.glob(root .. '/*[Mm]akefile') == '' then
+        local script_dir = debug.getinfo(2, 'S').source:sub(2):match('(.*/)')
+        local input = vim.loop.fs_open(script_dir .. '/MakefileTemplate', 'r', 438)
+        assert(input, 'Could not open source file')
+        local output = vim.loop.fs_open(root .. '/Makefile', 'w', 438)
+        assert(output, 'Could not open destination file')
+
+        local stat = vim.loop.fs_fstat(input)
+        local data = vim.loop.fs_read(input, stat.size, 0)
+        vim.loop.fs_write(output, data, 0)
+
+        vim.loop.fs_close(input)
+        vim.loop.fs_close(output)
+    end
+
+    return M.make(root, args)
 end
 
 
@@ -100,10 +104,10 @@ end
 function M.haskell(root, args)
     if vim.fn.glob(root .. '/' .. '*.cabal') ~= '' then
         return 'cabal run'
-    else
-        local out = string.match(root, '([^/]+)$')
-        return 'ghc -o ' .. out .. ' ' .. get_relative_path(root) .. ' && ./' .. out
     end
+
+    local out = string.match(root, '([^/]+)$')
+    return 'ghc -o ' .. out .. ' ' .. get_relative_path(root) .. ' && ./' .. out
 end
 
 
