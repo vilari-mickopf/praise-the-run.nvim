@@ -46,7 +46,7 @@ function M.c(root, args)
     end
 
     -- Add template makefile if not present already
-    if vim.fn.glob(root .. '/*[Mm]akefile') == '' then
+    if vim.fn.glob(root .. '/[Mm]akefile') == '' then
         local script_dir = debug.getinfo(2, 'S').source:sub(2):match('(.*/)')
         local input = vim.loop.fs_open(script_dir .. '/MakefileTemplate', 'r', 438)
         assert(input, 'Could not open source file')
@@ -68,9 +68,29 @@ end
 M.cpp = M.c
 
 
+function M.zig(root, args)
+    if vim.fn.glob(root .. '/[Mm]akefile') ~= '' then
+        return M.make(root, args)
+    end
+
+    if vim.fn.findfile(root .. '/zig.build') == '' then
+        print('Neither zig.build nor makefile is present.')
+        return
+    end
+
+    local command = 'zig build'
+    if args ~= '' then
+        command = command .. ' ' .. args
+    end
+    command = command .. ' run'
+
+    return command
+end
+
+
 function M.rust(root, args)
     if vim.fn.findfile(root .. '/Cargo.toml') == '' then
-        print('Cargo.toml file not present.')
+        print('Cargo.toml not present.')
         return
     end
 

@@ -40,6 +40,11 @@ function M.setup(user_config)
                 root_identifier = {'[Mm]akefile', 'CMakeLists.txt', '.git', '.svn'},
                 run = default_runners.cpp
             },
+            zig = {
+                project_file = '.zigproject',
+                root_identifier = {'[Mm]akefile', 'zig.build', '.git', '.svn'},
+                run = default_runners.zig
+            },
             make = {
                 project_file = '.cproject',
                 root_identifier = {'[Mm]akefile', 'CMakeLists.txt', '.git', '.svn'},

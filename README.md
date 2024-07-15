@@ -1,13 +1,16 @@
 ## Praise The Run
 
-Plugin for compiling/running different projects. By default python, c/c++, rust, lua, sh, haskell, matlab, markdown, rmarkdown and latex are supported, but other languages can be easily added. Upon run, plugin identifies the project root from lsp. If lsp is not present/initialized, root will be determined by traversing upwards in the directory tree, searching for specified identifiers. If no identifiers are found, the directory of the current file is assumed to be the root. You can also set custom run commands per project with a specified project file, which will be automatically included in the list of root identifiers.
+Plugin for compiling/running different projects. By default python, c/c++, zig, rust, lua, sh, haskell, matlab, markdown, rmarkdown and latex are supported, but other languages can be easily added. Upon run, plugin identifies the project root from lsp. If lsp is not present/initialized, root will be determined by traversing upwards in the directory tree, searching for specified identifiers. If no identifiers are found, the directory of the current file is assumed to be the root. You can also set custom run commands per project with a specified project file, which will be automatically included in the list of root identifiers.
 
 
 ### Default Runners
 
+The first command, prepended to all commands regardless of what language is used, will always be `cd <root>`.
+
+
 #### python
+
 ```bash
-cd <root>
 python <script> <args>
 ```
 
@@ -16,30 +19,43 @@ python <script> <args>
 - With `CMakeLists.txt` in root directory:
 
 ```bash
-cd <root>
 mkdir build && cd build
 cmake .. <args>
 make -j
 ```
+_***Note**: if `clean` is passed as args, `rm -rf build` will be executed instead._
 
 - With `Makefile` in root directory:
 
 ```bash
-cd <root>
 make -j <args>
 ```
 
 - If neither CMakeLists.txt nor Makefile exists, plugin will copy generic makefile that will scan all .c/.cpp files and run:
 
 ```bash
-cd <root>
 make -j <args>
+```
+
+#### zig
+
+- With `Makefile` in root directory:
+
+```bash
+make -j <args>
+```
+
+- With `zig.build` in root directory:
+
+```bash
+zig build <args> run
 ```
 
 #### rust
 
+- With `Cargo.toml` in root directory:
+
 ```bash
-cd <root>
 cargo run -- <args>
 ```
 
@@ -48,21 +64,18 @@ cargo run -- <args>
 - If `lua_modules` directory exists:
 
 ```bash
-cd <root>
 ./lua <script> <args>
-
 ```
+
 - Otherwise:
 
 ```bash
-cd <root>
 lua <script> <args>
 ```
 
 #### sh
 
 ```bash
-cd <root>
 chmod +x <script>
 ./<script> <args>
 ```
@@ -72,28 +85,24 @@ chmod +x <script>
 - If `*.cabal` file exists:
 
 ```bash
-cd <root>
 cabal run
-
 ```
+
 - Otherwise:
 
 ```bash
-cd <root>
 ghc -o <dirname> <script> && ./<dirname>
 ```
 
 #### matlab
 
 ```bash
-cd <root>
 octave <script> <args>
 ```
 
 #### markdown
 
 ```bash
-cd <root>
 pandoc --verbose -o <script:%.pdf>
 ```
 _***Note**: `-o script:%.pdf` will be passed only if `-o` is not present in args._
@@ -101,7 +110,6 @@ _***Note**: `-o script:%.pdf` will be passed only if `-o` is not present in args
 #### rmarkdown
 
 ```bash
-cd <root>
 echo "require(rmarkdown); render('<script>')" | R --vanila
 ```
 _***Note**: `--vanila` is passed only if args are not specifed._
@@ -109,7 +117,6 @@ _***Note**: `--vanila` is passed only if args are not specifed._
 #### latex
 
 ```bash
-cd <root>
 sh -c "pdflatex <script> && if grep -q 'bibliography' <script>; then if grep -q 'biblatex' <script>; then biber <script:%.> && pdflatex <script> && pdflatex <script>; else bibtex <script:%.> && pdflatex <script> && pdflatex <script>; fi; fi"
 ```
 
@@ -149,6 +156,11 @@ require('praise-the-run').setup({
                 project_file = '.cproject',
                 root_identifier = {'[Mm]akefile', 'CMakeLists.txt', '.git', '.svn'},
                 run = default_runners.cpp
+            },
+            zig = {
+                project_file = '.zigproject',
+                root_identifier = {'[Mm]akefile', 'zig.build', '.git', '.svn'},
+                run = default_runners.zig
             },
             make = {
                 project_file = '.cproject',
