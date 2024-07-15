@@ -1,11 +1,9 @@
 local M = {}
 
 
-
 function M.default_runner(command, root, args)
-    -- get path relative to root
-    local file_path = vim.api.nvim_buf_get_name(0)
-    local relative_path = vim.fn.fnamemodify(file_path, ":." .. root)
+    local relative_path = string.sub(vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":p"),
+                                     #vim.fn.fnamemodify(root, ":p") + 1)
 
     if string.sub(command, -1) ~= '/' then
         command = command .. ' '
@@ -31,7 +29,7 @@ end
 
 
 function M.cmake(root, args)
-    return 'mkdir build && cd build && cmake .. ' .. args .. ' && make -j'
+    return 'mkdir -p build && cd build && cmake .. ' .. args .. ' && make -j'
 end
 
 
@@ -100,8 +98,8 @@ function M.haskell(root, args)
     if vim.fn.glob(root .. '/' .. '*.cabal') ~= '' then
         return 'cabal run'
     else
-        local file_path = vim.api.nvim_buf_get_name(0)
-        local relative_path = vim.fn.fnamemodify(file_path, ":." .. root)
+        local relative_path = string.sub(vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":p"),
+                                         #vim.fn.fnamemodify(root, ":p") + 1)
         local out = string.match(root, '([^/]+)$')
         return 'ghc -o ' .. out .. ' ' .. relative_path .. ' && ./' .. out
     end
@@ -123,8 +121,8 @@ end
 
 
 function M.rmarkdown(root, args)
-    local file_path = vim.api.nvim_buf_get_name(0)
-    local relative_path = vim.fn.fnamemodify(file_path, ":." .. root)
+    local relative_path = string.sub(vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":p"),
+                                     #vim.fn.fnamemodify(root, ":p") + 1)
 
     local command = 'echo \"require(rmarkdown); render(\'' .. relative_path .. '\')\" | R'
 
@@ -140,7 +138,8 @@ end
 
 function M.tex(root, args)
     local file_path = vim.api.nvim_buf_get_name(0)
-    local relative_path = vim.fn.fnamemodify(file_path, ':.' .. root)
+    local relative_path = string.sub(vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":p"),
+                                     #vim.fn.fnamemodify(root, ":p") + 1)
 
     local pdflatex = 'pdflatex ' .. relative_path
     local bibtex= 'bibtex ' .. relative_path:gsub('%.tex$', '')
