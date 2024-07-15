@@ -103,14 +103,14 @@ octave <script> <args>
 #### markdown
 
 ```bash
-pandoc --verbose -o <script:%.pdf>
+pandoc --verbose -o <script:%.pdf> <args>
 ```
 _***Note**: `-o script:%.pdf` will be passed only if `-o` is not present in args._
 
 #### rmarkdown
 
 ```bash
-echo "require(rmarkdown); render('<script>')" | R --vanila
+echo "require(rmarkdown); render('<script>')" | R --vanila <args>
 ```
 _***Note**: `--vanila` is passed only if args are not specifed._
 
