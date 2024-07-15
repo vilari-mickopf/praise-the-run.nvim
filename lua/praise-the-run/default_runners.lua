@@ -1,15 +1,18 @@
 local M = {}
 
 
-function M.default_runner(command, root, args)
-    local relative_path = string.sub(vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":p"),
-                                     #vim.fn.fnamemodify(root, ":p") + 1)
+local function get_relative_path(root)
+    return string.sub(vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ':p'),
+                      #vim.fn.fnamemodify(root, ':p') + 1)
+end
 
+
+function M.default_runner(command, root, args)
     if string.sub(command, -1) ~= '/' then
         command = command .. ' '
     end
 
-    command = command .. relative_path
+    command = command .. get_relative_path(root)
     if args ~= '' then
         command = command .. ' ' .. args
     end
@@ -89,7 +92,7 @@ end
 
 
 function M.sh(root, args)
-    local command = 'chmod +x ' .. vim.api.nvim_buf_get_name(0) .. ' && '
+    local command = 'chmod +x ' .. get_relative_path(root) .. ' && '
     return M.default_runner(command .. './', root, args)
 end
 
@@ -98,10 +101,8 @@ function M.haskell(root, args)
     if vim.fn.glob(root .. '/' .. '*.cabal') ~= '' then
         return 'cabal run'
     else
-        local relative_path = string.sub(vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":p"),
-                                         #vim.fn.fnamemodify(root, ":p") + 1)
         local out = string.match(root, '([^/]+)$')
-        return 'ghc -o ' .. out .. ' ' .. relative_path .. ' && ./' .. out
+        return 'ghc -o ' .. out .. ' ' .. get_relative_path(root) .. ' && ./' .. out
     end
 end
 
@@ -113,7 +114,7 @@ end
 
 function M.markdown(root, args)
     if not string.find(args, '%-o') then
-        args = args .. '-o ' .. string.gsub(vim.api.nvim_buf_get_name(0), '%.%w+$', '.pdf')
+        args = args .. '-o ' .. string.gsub(get_relative_path(root), '%.%w+$', '.pdf')
     end
 
     return M.default_runner('pandoc --verbose', root, args)
@@ -121,10 +122,7 @@ end
 
 
 function M.rmarkdown(root, args)
-    local relative_path = string.sub(vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":p"),
-                                     #vim.fn.fnamemodify(root, ":p") + 1)
-
-    local command = 'echo \"require(rmarkdown); render(\'' .. relative_path .. '\')\" | R'
+    local command = 'echo \"require(rmarkdown); render(\'' .. get_relative_path(root) .. '\')\" | R'
 
     if args ~= '' then
         command = command .. ' ' .. args
@@ -137,9 +135,7 @@ end
 
 
 function M.tex(root, args)
-    local file_path = vim.api.nvim_buf_get_name(0)
-    local relative_path = string.sub(vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":p"),
-                                     #vim.fn.fnamemodify(root, ":p") + 1)
+    local relative_path = get_relative_path(root)
 
     local pdflatex = 'pdflatex ' .. relative_path
     local bibtex= 'bibtex ' .. relative_path:gsub('%.tex$', '')
