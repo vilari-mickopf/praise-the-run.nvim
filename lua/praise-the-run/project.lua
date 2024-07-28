@@ -175,7 +175,6 @@ function M.open_project_file(lang_config)
             file:close()
 
             vim.cmd('split ' .. project_file)
-            vim.cmd('%!python -m json.tool')
             vim.cmd('write')
         end
     end
