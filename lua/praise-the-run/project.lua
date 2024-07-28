@@ -2,7 +2,8 @@ local M = {}
 
 
 local function find_lsp_root()
-    local clients = vim.lsp.get_clients()
+    local get_clients = vim.lsp.get_clients or vim.lsp.get_active_clients
+    local clients = get_clients()
     if next(clients) == nil then
         return nil
     end
