@@ -22,7 +22,7 @@ end
 
 
 function M.python(root, args)
-    return M.default_runner('python', root, args)
+    return M.default_runner('python3', root, args)
 end
 
 
